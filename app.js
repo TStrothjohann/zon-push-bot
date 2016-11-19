@@ -802,7 +802,7 @@ function sendNewsMessage(recipientId) {
             buttons: [{
               type: "web_url",
               url: "http://www.zeit.de/serie/fischer-im-recht",
-              title: "Zur Serie auf ZEIT ONLINE"
+              title: "Zur Serie"
             }, {
               type: "postback",
               title: "Abonnieren",
@@ -812,15 +812,17 @@ function sendNewsMessage(recipientId) {
             title: "Redaktionsempfehlungen",
             subtitle: "Besonders wichtige Nachrichten und Texte von ZEIT ONLINE",
             item_url: "http://www.zeit.de/administratives/wichtige-nachrichten",               
-            image_url: SERVER_URL + "/assets/touch.png",
+            image_url: "http://www.zeit.de/static/3.16/images/structured-data-publisher-logo-zon.png",
             buttons: [{
               type: "web_url",
               url: "http://www.zeit.de/administratives/wichtige-nachrichten",
-              title: "Zur Übersicht auf ZEIT ONLINE"
+              title: "Zur Übersicht"
             }, {
               type: "postback",
               title: "Abonnieren",
-              payload: "subscribe-news",
+              payload: {
+                subscription: "news"
+              },
             }]
           }]
         }
