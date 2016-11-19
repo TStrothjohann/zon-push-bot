@@ -338,9 +338,14 @@ function receivedPostback(event) {
     answer = "Wenn möglich, hätten Sie jetzt Fischer abonniert...";
   }
 
-  if (payload.subscription === "news") {
+  if (payload === "subscribe-news") {
     answer = subscribeToNews();
   }
+
+  if (payload === "get-started") {
+    sendNewsMessage(senderID);
+  }
+  
   console.log("Received postback for user %d and page %d with payload '%s' " + 
     "at %d", senderID, recipientID, payload, timeOfPostback);
 
@@ -350,6 +355,11 @@ function receivedPostback(event) {
 }
 
 function subscribeToNews() {
+  request('http://www.google.com', function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      console.log(body) // Show the HTML for the Google homepage.
+    }
+  })
   return "Sie hätten jetzt Wichtige Nachrichten abonniert...";
 }
 
@@ -820,9 +830,7 @@ function sendNewsMessage(recipientId) {
             }, {
               type: "postback",
               title: "Abonnieren",
-              payload: {
-                subscription: "news"
-              },
+              payload: "subscribe-news",
             }]
           }]
         }

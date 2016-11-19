@@ -5,3 +5,4 @@ node_modules
 .npm
 *.dat
 .env
+set-settings.sh
