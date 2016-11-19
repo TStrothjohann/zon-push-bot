@@ -278,6 +278,10 @@ function receivedMessage(event) {
         sendAccountLinking(senderID);
         break;
 
+      case 'news':
+        sendNewsMessage(senderID);
+        break;
+
       default:
         sendTextMessage(senderID, messageText);
     }
@@ -328,13 +332,25 @@ function receivedPostback(event) {
   // The 'payload' param is a developer-defined field which is set in a postback 
   // button for Structured Messages. 
   var payload = event.postback.payload;
+  var answer = "Postback called";
 
+  if (payload === "subscribe-fischer") {
+    answer = "Wenn möglich, hätten Sie jetzt Fischer abonniert...";
+  }
+
+  if (payload.subscription === "news") {
+    answer = subscribeToNews();
+  }
   console.log("Received postback for user %d and page %d with payload '%s' " + 
     "at %d", senderID, recipientID, payload, timeOfPostback);
 
   // When a postback is called, we'll send a message back to the sender to 
   // let them know it was successful
-  sendTextMessage(senderID, "Postback called");
+  sendTextMessage(senderID, answer);
+}
+
+function subscribeToNews() {
+  return "Sie hätten jetzt Wichtige Nachrichten abonniert...";
 }
 
 /*
@@ -765,6 +781,52 @@ function sendAccountLinking(recipientId) {
     }
   };  
 
+  callSendAPI(messageData);
+}
+
+function sendNewsMessage(recipientId) {
+  var messageData = {
+   recipient: {
+      id: recipientId
+    },
+    message: {
+      attachment: {
+        type: "template",
+        payload: {
+          template_type: "generic",
+          elements: [{
+            title: "Serie: Fischer im Recht",
+            subtitle: "Thomas Fischer ist Bundesrichter in Karlsruhe und schreibt für ZEIT und ZEIT ONLINE über Rechtsfragen.",
+            item_url: "http://www.zeit.de/serie/fischer-im-recht",               
+            image_url: "http://img.zeit.de/autoren/F/Thomas_Fischer/thomas-fischer/original__200x300__desktop",
+            buttons: [{
+              type: "web_url",
+              url: "http://www.zeit.de/serie/fischer-im-recht",
+              title: "Zur Serie auf ZEIT ONLINE"
+            }, {
+              type: "postback",
+              title: "Abonnieren",
+              payload: "subscribe-fischer",
+            }],
+          }, {
+            title: "Redaktionsempfehlungen",
+            subtitle: "Besonders wichtige Nachrichten und Texte von ZEIT ONLINE",
+            item_url: "http://www.zeit.de/administratives/wichtige-nachrichten",               
+            image_url: SERVER_URL + "/assets/touch.png",
+            buttons: [{
+              type: "web_url",
+              url: "http://www.zeit.de/administratives/wichtige-nachrichten",
+              title: "Zur Übersicht auf ZEIT ONLINE"
+            }, {
+              type: "postback",
+              title: "Abonnieren",
+              payload: "subscribe-news",
+            }]
+          }]
+        }
+      }
+    }
+  };
   callSendAPI(messageData);
 }
 
