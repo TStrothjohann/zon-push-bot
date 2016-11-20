@@ -870,12 +870,13 @@ function broadcastNews(recipientID) {
   var recipients = getRecipients("subscribe-news");
   
   request.get("http://newsfeed.zeit.de/administratives/wichtige-nachrichten", function(data){
+    var messageText = JSON.stringify(data);
     for (var i = 0; i < recipients.length; i++) {
       var bulkMessageData = {
         recipient: {
           id: recipients[i]
         },
-        message: data
+        message: messageText
       };
 
       callSendAPI(bulkMessageData);
@@ -887,8 +888,7 @@ function broadcastNews(recipientID) {
       id: recipientID
     },
     message: {
-      text: messageText,
-      metadata: "DEVELOPER_DEFINED_METADATA"
+      text: "Wichtige Nachrichten wurden an " + recipients.length + " Nutzer geschickt."
     }
   };
 
