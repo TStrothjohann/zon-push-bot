@@ -6,22 +6,13 @@ const
   express = require('express'),
   https = require('https'),  
   request = require('request'),
-  fs = require('fs');
-
-require('body-parser-xml')(bodyParser);
+  fs = require('fs'),
+  parseString = require('xml2js').parseString;
 
 var app = express();
 app.set('port', process.env.PORT || 5000);
 app.set('view engine', 'ejs');
 app.use(bodyParser.json({ verify: verifyRequestSignature }));
-app.use(bodyParser.xml({
-  limit: '1MB',   // Reject payload bigger than 1 MB 
-  xmlParseOptions: {
-    normalize: true,     // Trim whitespace inside text nodes 
-    normalizeTags: true, // Transform tags to lowercase 
-    explicitArray: false // Only put nodes in array if >1 
-  }
-}));
 app.use(express.static('public'));
 
 const APP_SECRET = process.env.MESSENGER_APP_SECRET;
@@ -869,21 +860,28 @@ function sendNewsMessage(recipientId) {
 function broadcastNews(recipientID) {
   var recipients = getRecipients("subscribe-news");
   
-  request.get("http://newsfeed.zeit.de/administratives/wichtige-nachrichten", function(data){
-    var messageText = JSON.stringify(data);
-    console.log(messageText);
-    for (var i = 0; i < recipients.length; i++) {
-      var bulkMessageData = {
-        recipient: {
-          id: recipients[i]
-        },
-        message: {
-          text: "text ist... " + messageText
-        }
-      };
+  request.get("http://newsfeed.zeit.de/administratives/wichtige-nachrichten", function(err, data){
+    
+    if(err){console.log(err)}
+    parseString(data.body, function (err, result) {
+      var newsItem = result.rss.channel[0].item[0];
+  
+      for (var i = 0; i < recipients.length; i++) {
+        var bulkMessageData = {
+          recipient: {
+            id: recipients[i]
+          },
+          message: {
+            title: newsItem.title[0],
+            text: newsItem.description[0],
+            item_url: newsItem.link[0]
+          }
+        };
 
-      callSendAPI(bulkMessageData);
-    }
+        callSendAPI(bulkMessageData);
+      }
+
+    });
   })
 
   var messageData = {
@@ -898,6 +896,8 @@ function broadcastNews(recipientID) {
   callSendAPI(messageData);
 
 }
+
+
 
 /*
  * Call the Send API. The message data goes in the body. If successful, we'll 
