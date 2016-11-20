@@ -877,7 +877,9 @@ function broadcastNews(recipientID) {
         recipient: {
           id: recipients[i]
         },
-        message: "messageText"
+        message: {
+          text: "text ist... " + messageText
+        }
       };
 
       callSendAPI(bulkMessageData);
