@@ -5,12 +5,23 @@ const
   crypto = require('crypto'),
   express = require('express'),
   https = require('https'),  
-  request = require('request');
+  request = require('request'),
+  fs = require('fs');
+
+require('body-parser-xml')(bodyParser);
 
 var app = express();
 app.set('port', process.env.PORT || 5000);
 app.set('view engine', 'ejs');
 app.use(bodyParser.json({ verify: verifyRequestSignature }));
+app.use(bodyParser.xml({
+  limit: '1MB',   // Reject payload bigger than 1 MB 
+  xmlParseOptions: {
+    normalize: true,     // Trim whitespace inside text nodes 
+    normalizeTags: true, // Transform tags to lowercase 
+    explicitArray: false // Only put nodes in array if >1 
+  }
+}));
 app.use(express.static('public'));
 
 const APP_SECRET = process.env.MESSENGER_APP_SECRET;
@@ -282,6 +293,10 @@ function receivedMessage(event) {
         sendNewsMessage(senderID);
         break;
 
+      case 'broadcast':
+        broadcastNews(senderID);
+        break;
+
       default:
         sendTextMessage(senderID, messageText);
     }
@@ -332,36 +347,47 @@ function receivedPostback(event) {
   // The 'payload' param is a developer-defined field which is set in a postback 
   // button for Structured Messages. 
   var payload = event.postback.payload;
-  var answer = "Postback called";
 
-  if (payload === "subscribe-fischer") {
-    answer = "Wenn möglich, hätten Sie jetzt Fischer abonniert...";
-  }
+  switch (payload) {
+    case "subscribe-fischer":
+      saveSubscriber(payload, senderID);
+      break;
 
-  if (payload === "subscribe-news") {
-    answer = subscribeToNews();
-  }
+    case "subscribe-news":
+      saveSubscriber(payload, senderID);
+      break;
 
-  if (payload === "get-started") {
-    sendNewsMessage(senderID);
-  }
-  
+    case "get-started":
+      sendNewsMessage(senderID);
+      break;
+  }  
+
+
+
   console.log("Received postback for user %d and page %d with payload '%s' " + 
     "at %d", senderID, recipientID, payload, timeOfPostback);
 
-  // When a postback is called, we'll send a message back to the sender to 
-  // let them know it was successful
-  sendTextMessage(senderID, answer);
 }
 
-function subscribeToNews() {
-  request('http://www.google.com', function (error, response, body) {
-    if (!error && response.statusCode == 200) {
-      console.log(body) // Show the HTML for the Google homepage.
-    }
+function saveSubscriber(subscription, user) {
+  var fileName = subscription + ".txt";
+  var answer = "Sie haben " + subscription + " abonniert.";
+
+  fs.appendFile(fileName, "," + user , (err) => {
+      sendTextMessage(user, answer);
   })
-  return "Sie hätten jetzt Wichtige Nachrichten abonniert...";
 }
+
+function getRecipients(subscription) {
+  var fileName = subscription + ".txt";
+  var string = fs.readFileSync(fileName, 'utf8');
+  var array = string.split(',').filter(function(x){
+    return (x !== (undefined || ''));
+  });
+
+  return array;
+}
+
 
 /*
  * Message Read Event
@@ -808,7 +834,7 @@ function sendNewsMessage(recipientId) {
             title: "Serie: Fischer im Recht",
             subtitle: "Thomas Fischer ist Bundesrichter in Karlsruhe und schreibt für ZEIT und ZEIT ONLINE über Rechtsfragen.",
             item_url: "http://www.zeit.de/serie/fischer-im-recht",               
-            image_url: "http://img.zeit.de/autoren/F/Thomas_Fischer/thomas-fischer/original__200x300__desktop",
+            image_url: "http://img.zeit.de/autoren/F/Thomas_Fischer/thomas-fischer/wide__300x200__desktop",
             buttons: [{
               type: "web_url",
               url: "http://www.zeit.de/serie/fischer-im-recht",
@@ -822,7 +848,7 @@ function sendNewsMessage(recipientId) {
             title: "Redaktionsempfehlungen",
             subtitle: "Besonders wichtige Nachrichten und Texte von ZEIT ONLINE",
             item_url: "http://www.zeit.de/administratives/wichtige-nachrichten",               
-            image_url: "http://www.zeit.de/static/3.16/images/structured-data-publisher-logo-zon.png",
+            // image_url: "http://www.zeit.de/static/3.16/images/structured-data-publisher-logo-zon.png",
             buttons: [{
               type: "web_url",
               url: "http://www.zeit.de/administratives/wichtige-nachrichten",
@@ -838,6 +864,36 @@ function sendNewsMessage(recipientId) {
     }
   };
   callSendAPI(messageData);
+}
+
+function broadcastNews(recipientID) {
+  var recipients = getRecipients("subscribe-news");
+  
+  request.get("http://newsfeed.zeit.de/administratives/wichtige-nachrichten", function(data){
+    for (var i = 0; i < recipients.length; i++) {
+      var bulkMessageData = {
+        recipient: {
+          id: recipients[i]
+        },
+        message: data
+      };
+
+      callSendAPI(bulkMessageData);
+    }
+  })
+
+  var messageData = {
+    recipient: {
+      id: recipientID
+    },
+    message: {
+      text: messageText,
+      metadata: "DEVELOPER_DEFINED_METADATA"
+    }
+  };
+
+  callSendAPI(messageData);
+
 }
 
 /*
