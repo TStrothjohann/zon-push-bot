@@ -871,12 +871,13 @@ function broadcastNews(recipientID) {
   
   request.get("http://newsfeed.zeit.de/administratives/wichtige-nachrichten", function(data){
     var messageText = JSON.stringify(data);
+    console.log(messageText);
     for (var i = 0; i < recipients.length; i++) {
       var bulkMessageData = {
         recipient: {
           id: recipients[i]
         },
-        message: messageText
+        message: "messageText"
       };
 
       callSendAPI(bulkMessageData);
