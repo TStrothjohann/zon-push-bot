@@ -860,7 +860,7 @@ function sendNewsMessage(recipientId) {
 function broadcastNews(recipientID) {
   var recipients = getRecipients("subscribe-news");
   
-  request.get("http://newsfeed.zeit.de/administratives/wichtige-nachrichten", function(err, data){
+  request.get("http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-socialflow-facebook", function(err, data){
     
     if(err){console.log(err)}
     parseString(data.body, function (err, result) {
@@ -871,10 +871,28 @@ function broadcastNews(recipientID) {
           recipient: {
             id: recipients[i]
           },
+          
           message: {
-            title: newsItem.title[0],
-            text: newsItem.description[0],
-            item_url: newsItem.link[0]
+            attachment: {
+              type: "template",
+              payload: {
+                template_type: "generic",
+                elements: [{
+                  title: newsItem.title[0],
+                  subtitle: newsItem.description[0],
+                  item_url: newsItem.link[0],               
+                  buttons: [{
+                    type: "web_url",
+                    url: newsItem.link[0],
+                    title: "Zum Artikel"
+                  }, {
+                    type: "postback",
+                    title: "Abonnieren",
+                    payload: "subscribe-news",
+                  }],
+                }]
+              }
+            }
           }
         };
 
@@ -897,6 +915,29 @@ function broadcastNews(recipientID) {
 
 }
 
+function getRSS(){
+  request.get("http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-socialflow-facebook", function(err, data){
+    
+    if(err){console.log(err)}
+    parseString(data.body, function (err, result) {
+      var newsItem = result.rss.channel[0].item[0];
+  
+
+        var bulkMessageData = {
+          recipient: {
+            id: "recipients"
+          },
+          message: {
+            title: newsItem.title[0],
+            text: newsItem.description[0],
+            item_url: newsItem.link[0]
+          }
+        };
+
+        console.log(bulkMessageData);
+    });
+  })
+}
 
 
 /*
