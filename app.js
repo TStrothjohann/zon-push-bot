@@ -395,6 +395,7 @@ function getRecipients(subscription) {
           client.end(function (err) {
             if (err) throw err;
           });
+          console.log(subscribers);
           return subscribers;
         }
       })
@@ -882,95 +883,103 @@ function sendNewsMessage(recipientId) {
 }
 
 function broadcastNews(recipientID) {
-  var recipients = getRecipients("subscribe-news");
-  
-  request.get("http://newsfeed.zeit.de/wissen/index/rss-spektrum-flavoured", function(err, data){
-    
-    if(err){console.log(err)}
-    parseString(data.body, function (err, result) {
-      var newsItem = result.rss.channel[0].item[0];
-      var newsItem2 = result.rss.channel[0].item[1];
-      var newsItem3 = result.rss.channel[0].item[2];
-  
-      for (var i = 0; i < recipients.length; i++) {
-        var bulkMessageData = {
-          recipient: {
-            id: recipients[i].pcuid
-          },
-          
-          message: {
-            attachment: {
-              type: "template",
-              payload: {
-                template_type: "generic",
-                elements: [{
-                  title: newsItem.title[0],
-                  subtitle: newsItem.description[0],
-                  item_url: newsItem.link[0],
-                  image_url: newsItem.enclosure[0].$.url,             
-                  buttons: [{
-                    type: "web_url",
-                    url: newsItem.link[0],
-                    title: "Zum Artikel"
-                  }, {
-                    type: "postback",
-                    title: "Abonnieren",
-                    payload: "subscribe-news",
-                  }],
-                },
-                {
-                  title: newsItem2.title[0],
-                  subtitle: newsItem2.description[0],
-                  item_url: newsItem2.link[0],
-                  image_url: newsItem2.enclosure[0].$.url,               
-                  buttons: [{
-                    type: "web_url",
-                    url: newsItem2.link[0],
-                    title: "Zum Artikel"
-                  }, {
-                    type: "postback",
-                    title: "Abonnieren",
-                    payload: "subscribe-news",
-                  }],
-                },
-                {
-                  title: newsItem3.title[0],
-                  subtitle: newsItem3.description[0],
-                  item_url: newsItem3.link[0],
-                  image_url: newsItem3.enclosure[0].$.url,             
-                  buttons: [{
-                    type: "web_url",
-                    url: newsItem3.link[0],
-                    title: "Zum Artikel"
-                  }, {
-                    type: "postback",
-                    title: "Abonnieren",
-                    payload: "subscribe-news",
-                  }],
-                }]
-              }
-            }
-          }
-        };
 
-        callSendAPI(bulkMessageData);
-      }
+  function sendBroadcast(messageObject){
+    for (var i = 0; i < recipients.length; i++) {
+      var bulkMessageData = {
+        recipient: {
+          id: recipients[i].pcuid
+        },
+        
+        message: messageObject
+      };
 
-    });
-  })
-
-  var messageData = {
-    recipient: {
-      id: recipientID
-    },
-    message: {
-      text: "Wichtige Nachrichten wurden an " + recipients.length + " Nutzer geschickt."
+      callSendAPI(bulkMessageData);
     }
-  };
+  }
 
-  callSendAPI(messageData);
+  function getWichtigeNachrichten(){
+    request.get("http://newsfeed.zeit.de/wissen/index/rss-spektrum-flavoured", function(err, data){      
+      if(err){console.log(err)}
+      parseString(data.body, function (err, result) {
+        var newsItem = result.rss.channel[0].item[0];
+        var newsItem2 = result.rss.channel[0].item[1];
+        var newsItem3 = result.rss.channel[0].item[2];
+        
+        var messageObject = {
+              attachment: {
+                type: "template",
+                payload: {
+                  template_type: "generic",
+                  elements: [{
+                    title: newsItem.title[0],
+                    subtitle: newsItem.description[0],
+                    item_url: newsItem.link[0],
+                    image_url: newsItem.enclosure[0].$.url,             
+                    buttons: [{
+                      type: "web_url",
+                      url: newsItem.link[0],
+                      title: "Zum Artikel"
+                    }, {
+                      type: "postback",
+                      title: "Abonnieren",
+                      payload: "subscribe-news",
+                    }],
+                  },
+                  {
+                    title: newsItem2.title[0],
+                    subtitle: newsItem2.description[0],
+                    item_url: newsItem2.link[0],
+                    image_url: newsItem2.enclosure[0].$.url,               
+                    buttons: [{
+                      type: "web_url",
+                      url: newsItem2.link[0],
+                      title: "Zum Artikel"
+                    }, {
+                      type: "postback",
+                      title: "Abonnieren",
+                      payload: "subscribe-news",
+                    }],
+                  },
+                  {
+                    title: newsItem3.title[0],
+                    subtitle: newsItem3.description[0],
+                    item_url: newsItem3.link[0],
+                    image_url: newsItem3.enclosure[0].$.url,             
+                    buttons: [{
+                      type: "web_url",
+                      url: newsItem3.link[0],
+                      title: "Zum Artikel"
+                    }, {
+                      type: "postback",
+                      title: "Abonnieren",
+                      payload: "subscribe-news",
+                    }],
+                  }]
+                }
+              }
+            } //End of Message Object
+            sendBroadcast(messageObject);          
+      });
+    }) //End of getWichtigeNachrichten
+  }
 
+
+  getRecipients("subscribe-news", function(recipients){
+    getWichtigeNachrichten();
+    var messageData = {
+      recipient: {
+        id: recipientID
+      },
+      message: {
+        text: "Wichtige Nachrichten wurden an " + recipients.length + " Nutzer geschickt."
+      }
+    };
+
+    callSendAPI(messageData);      
+  });
 }
+
 
 function getRSS(){
   request.get("http://newsfeed.zeit.de/wissen/index/rss-spektrum-flavoured", function(err, data){
