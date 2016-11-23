@@ -121,6 +121,13 @@ app.get('/authorize', function(req, res) {
   });
 });
 
+app.post('/new-item', function(req, res){
+  if(req.param('ping')){
+    broadcastNews(false);        
+  }
+  res.sendStatus(200);
+});
+
 /*
  * Verify that the callback came from Facebook. Using the App Secret from 
  * the App Dashboard, we can verify the signature that is sent with each 
@@ -976,7 +983,9 @@ function broadcastNews(recipientID) {
       }
     };
 
-    callSendAPI(messageData);      
+    if(recipientID){
+      callSendAPI(messageData);
+    }      
   });
 }
 
