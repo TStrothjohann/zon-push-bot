@@ -372,7 +372,7 @@ function saveSubscriber(subscription, user) {
     if (err) throw err;
 
     client
-      .query('INSERT INTO subscribers (pcuid, subscription) VALUES ($1, $2)', ['234567', 'test'], function(err, res){
+      .query('INSERT INTO subscribers (pcuid, subscription) VALUES ($1, $2)', [user, subscription], function(err, res){
         if(res){
           sendTextMessage(user, answer);
         }
