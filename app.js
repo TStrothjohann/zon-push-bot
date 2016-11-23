@@ -899,7 +899,7 @@ function broadcastNews(recipientID) {
   }
 
   function getWichtigeNachrichten(recipients){
-    request.get("http://newsfeed.zeit.de/wissen/index/rss-spektrum-flavoured", function(err, data){      
+    request.get("http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-spektrum-flavoured", function(err, data){      
       if(err){console.log(err)}
       parseString(data.body, function (err, result) {
         var newsItem = result.rss.channel[0].item[0];
@@ -981,7 +981,7 @@ function broadcastNews(recipientID) {
 }
 
 function getRSS(){
-  request.get("http://newsfeed.zeit.de/wissen/index/rss-spektrum-flavoured", function(err, data){
+  request.get("http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-spektrum-flavoured", function(err, data){
     
     if(err){console.log(err)}
     parseString(data.body, function (err, result) {
