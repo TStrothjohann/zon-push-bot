@@ -9,6 +9,12 @@ const
   fs = require('fs'),
   parseString = require('xml2js').parseString;
 
+
+var pg = require('pg');
+if(process.env.NODE_ENV !== 'dev'){
+  pg.defaults.ssl = true;
+}
+
 var app = express();
 app.set('port', process.env.PORT || 5000);
 app.set('view engine', 'ejs');
@@ -361,24 +367,42 @@ function receivedPostback(event) {
 }
 
 function saveSubscriber(subscription, user) {
-  var fileName = subscription + ".txt";
   var answer = "Sie haben " + subscription + " abonniert.";
+  pg.connect(process.env.DATABASE_URL, function(err, client) {
+    if (err) throw err;
 
-  fs.appendFile(fileName, "," + user , (err) => {
-      sendTextMessage(user, answer);
-  })
+    client
+      .query('INSERT INTO subscribers (pcuid, subscription) VALUES ($1, $2)', ['234567', 'test'], function(err, res){
+        if(res){
+          sendTextMessage(user, answer);
+        }
+        client.end(function (err) {
+          if (err) throw err;
+        });
+      })
+  });
 }
+
 
 function getRecipients(subscription) {
-  var fileName = subscription + ".txt";
-  var string = fs.readFileSync(fileName, 'utf8');
-  var array = string.split(',').filter(function(x){
-    return (x !== (undefined || ''));
+  pg.connect(process.env.DATABASE_URL, function(err, client) {
+    if (err) throw err;
+    var subscribers = [];
+    client
+      .query('SELECT pcuid FROM subscribers WHERE subscription IN ($1)', [subscription], function(err, res){
+        if (err) throw err;
+        if(res){
+          client.end(function (err) {
+            if (err) throw err;
+          });
+          return subscribers;
+        }
+      })
+      .on('row', function(row) {
+        subscribers.push(row);
+      });
   });
-
-  return array;
 }
-
 
 /*
  * Message Read Event
@@ -839,7 +863,7 @@ function sendNewsMessage(recipientId) {
             title: "Redaktionsempfehlungen",
             subtitle: "Besonders wichtige Nachrichten und Texte von ZEIT ONLINE",
             item_url: "http://www.zeit.de/administratives/wichtige-nachrichten",               
-            // image_url: "http://www.zeit.de/static/3.16/images/structured-data-publisher-logo-zon.png",
+            image_url: "http://img.zeit.de/angebote/bilder-angebotsbox/2016/bild-angebotsbox-48.jpg/imagegroup/wide",
             buttons: [{
               type: "web_url",
               url: "http://www.zeit.de/administratives/wichtige-nachrichten",
@@ -860,16 +884,18 @@ function sendNewsMessage(recipientId) {
 function broadcastNews(recipientID) {
   var recipients = getRecipients("subscribe-news");
   
-  request.get("http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-socialflow-facebook", function(err, data){
+  request.get("http://newsfeed.zeit.de/wissen/index/rss-spektrum-flavoured", function(err, data){
     
     if(err){console.log(err)}
     parseString(data.body, function (err, result) {
       var newsItem = result.rss.channel[0].item[0];
+      var newsItem2 = result.rss.channel[0].item[1];
+      var newsItem3 = result.rss.channel[0].item[2];
   
       for (var i = 0; i < recipients.length; i++) {
         var bulkMessageData = {
           recipient: {
-            id: recipients[i]
+            id: recipients[i].pcuid
           },
           
           message: {
@@ -880,10 +906,41 @@ function broadcastNews(recipientID) {
                 elements: [{
                   title: newsItem.title[0],
                   subtitle: newsItem.description[0],
-                  item_url: newsItem.link[0],               
+                  item_url: newsItem.link[0],
+                  image_url: newsItem.enclosure[0].$.url,             
                   buttons: [{
                     type: "web_url",
                     url: newsItem.link[0],
+                    title: "Zum Artikel"
+                  }, {
+                    type: "postback",
+                    title: "Abonnieren",
+                    payload: "subscribe-news",
+                  }],
+                },
+                {
+                  title: newsItem2.title[0],
+                  subtitle: newsItem2.description[0],
+                  item_url: newsItem2.link[0],
+                  image_url: newsItem2.enclosure[0].$.url,               
+                  buttons: [{
+                    type: "web_url",
+                    url: newsItem2.link[0],
+                    title: "Zum Artikel"
+                  }, {
+                    type: "postback",
+                    title: "Abonnieren",
+                    payload: "subscribe-news",
+                  }],
+                },
+                {
+                  title: newsItem3.title[0],
+                  subtitle: newsItem3.description[0],
+                  item_url: newsItem3.link[0],
+                  image_url: newsItem3.enclosure[0].$.url,             
+                  buttons: [{
+                    type: "web_url",
+                    url: newsItem3.link[0],
                     title: "Zum Artikel"
                   }, {
                     type: "postback",
@@ -916,12 +973,11 @@ function broadcastNews(recipientID) {
 }
 
 function getRSS(){
-  request.get("http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-socialflow-facebook", function(err, data){
+  request.get("http://newsfeed.zeit.de/wissen/index/rss-spektrum-flavoured", function(err, data){
     
     if(err){console.log(err)}
     parseString(data.body, function (err, result) {
       var newsItem = result.rss.channel[0].item[0];
-  
 
         var bulkMessageData = {
           recipient: {
@@ -930,7 +986,8 @@ function getRSS(){
           message: {
             title: newsItem.title[0],
             text: newsItem.description[0],
-            item_url: newsItem.link[0]
+            item_url: newsItem.link[0],
+            image_url: newsItem.enclosure[0].$.url
           }
         };
 
