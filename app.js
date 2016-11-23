@@ -884,7 +884,7 @@ function sendNewsMessage(recipientId) {
 
 function broadcastNews(recipientID) {
 
-  function sendBroadcast(messageObject){
+  function sendBroadcast(messageObject, recipients){
     for (var i = 0; i < recipients.length; i++) {
       var bulkMessageData = {
         recipient: {
@@ -898,7 +898,7 @@ function broadcastNews(recipientID) {
     }
   }
 
-  function getWichtigeNachrichten(){
+  function getWichtigeNachrichten(recipients){
     request.get("http://newsfeed.zeit.de/wissen/index/rss-spektrum-flavoured", function(err, data){      
       if(err){console.log(err)}
       parseString(data.body, function (err, result) {
@@ -959,14 +959,14 @@ function broadcastNews(recipientID) {
                 }
               }
             } //End of Message Object
-            sendBroadcast(messageObject);          
+            sendBroadcast(messageObject, recipients);          
       });
     }) //End of getWichtigeNachrichten
   }
 
 
   getRecipients("subscribe-news", function(recipients){
-    getWichtigeNachrichten();
+    getWichtigeNachrichten(recipients);
     var messageData = {
       recipient: {
         id: recipientID
@@ -979,7 +979,6 @@ function broadcastNews(recipientID) {
     callSendAPI(messageData);      
   });
 }
-
 
 function getRSS(){
   request.get("http://newsfeed.zeit.de/wissen/index/rss-spektrum-flavoured", function(err, data){
