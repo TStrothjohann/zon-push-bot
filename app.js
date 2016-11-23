@@ -384,7 +384,7 @@ function saveSubscriber(subscription, user) {
 }
 
 
-function getRecipients(subscription) {
+function getRecipients(subscription, callback) {
   pg.connect(process.env.DATABASE_URL, function(err, client) {
     if (err) throw err;
     var subscribers = [];
@@ -396,7 +396,7 @@ function getRecipients(subscription) {
             if (err) throw err;
           });
           console.log(subscribers);
-          return subscribers;
+          callback(subscribers);
         }
       })
       .on('row', function(row) {
