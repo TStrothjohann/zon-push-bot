@@ -379,8 +379,10 @@ function saveSubscriber(subscription, user) {
     if (err) throw err;
 
     client
-      .query('INSERT INTO subscribers (pcuid, subscription) VALUES ($1, $2)', [user, subscription], function(err, res){
+      .query('INSERT INTO subscribers (pcuid, subscription) VALUES ($1, $2) ON CONFLICT (pcuid) DO NOTHING', [user, subscription], function(err, res){
+        if (err) throw err;
         if(res){
+          
           sendTextMessage(user, answer);
         }
         client.end(function (err) {
@@ -402,7 +404,6 @@ function getRecipients(subscription, callback) {
           client.end(function (err) {
             if (err) throw err;
           });
-          console.log(subscribers);
           callback(subscribers);
         }
       })
