@@ -9,7 +9,7 @@ const
   fs = require('fs'),
   parseString = require('xml2js').parseString;
 
-
+var ButtonMessage = require("./message_types/ButtonMessage.js");
 var pg = require('pg');
 if(process.env.NODE_ENV !== 'dev'){
   pg.defaults.ssl = true;
@@ -584,35 +584,8 @@ function sendTextMessage(recipientId, messageText) {
  *
  */
 function sendButtonMessage(recipientId) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "template",
-        payload: {
-          template_type: "button",
-          text: "This is test text",
-          buttons:[{
-            type: "web_url",
-            url: "https://www.oculus.com/en-us/rift/",
-            title: "Open Web URL"
-          }, {
-            type: "postback",
-            title: "Trigger Postback",
-            payload: "DEVELOPER_DEFINED_PAYLOAD"
-          }, {
-            type: "phone_number",
-            title: "Call Phone Number",
-            payload: "+16505551234"
-          }]
-        }
-      }
-    }
-  };  
-
-  callSendAPI(messageData);
+  var message = new ButtonMessage(recipientId);
+  callSendAPI(message.data);
 }
 
 /*
