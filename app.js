@@ -419,7 +419,7 @@ function getRecipients(subscription, callback) {
       attributes: ['userId'],
       where: {
         name: subscription,
-        active: false,
+        active: true,
         userId: {$not: null}
       }
     })
