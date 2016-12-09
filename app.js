@@ -386,7 +386,7 @@ function receivedPostback(event) {
 
 function addASubscription(user){
   var hisSubscription = Subscription
-    .create({ name: "testSubscription", active: false, interval: "daily"})
+    .create({ name: "testSubscription", active: true, interval: "daily"})
     .then(function(subscription){
       subscription.setUser(user);
       console.log(subscription);
