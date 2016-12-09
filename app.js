@@ -10,10 +10,38 @@ const
   parseString = require('xml2js').parseString;
 
 var ButtonMessage = require("./message_types/ButtonMessage.js");
-var pg = require('pg');
-if(process.env.NODE_ENV !== 'dev'){
-  pg.defaults.ssl = true;
+var Sequelize = require('sequelize');
+
+
+var sequelize = new Sequelize(process.env.DATABASE_URL);
+var User = sequelize.import(__dirname + "/models/User.js");
+var Subscription = sequelize.import(__dirname + "/models/Subscription.js");
+Subscription.belongsTo(User);
+User.hasMany(Subscription);
+
+sequelize.sync()
+  .then(function(){
+    creatAUser();
+  })
+
+function creatAUser(){
+  var myUser = User
+    .create({ pcuid: '2345678', intent: 'topic' })
+    .then(function(user) {
+      addASubscription(user)
+    })
 }
+
+
+function addASubscription(user){
+  var hisSubscription = Subscription
+    .create({ name: "testSubscription", active: false, interval: "daily"})
+    .then(function(subscription){
+      subscription.setUser(user);
+      console.log(subscription);
+    })
+}
+
 
 var app = express();
 app.set('port', process.env.PORT || 5000);
