@@ -390,7 +390,8 @@ function addASubscription(user, subscription){
     .upsert({ 
       name: subscription,
       active: true,
-      interval: "daily"
+      interval: "daily",
+      userId: user
     },{
       where: {
         name: subscription,
@@ -411,7 +412,6 @@ function saveSubscriber(subscription, user) {
       addASubscription(u[0].dataValues.id, subscription);
     })
 }
-
 
 function getRecipients(subscription, callback) {
   Subscription
