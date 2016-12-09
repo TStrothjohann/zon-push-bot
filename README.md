@@ -18,3 +18,6 @@ ToDo
 
 
 
+Abos abstrahieren (man kann Fischer und News etc. folgen)
+Abos abbestellbar machen
+Bilder groß laden

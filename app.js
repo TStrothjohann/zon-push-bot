@@ -10,6 +10,7 @@ const
   parseString = require('xml2js').parseString;
 
 var ButtonMessage = require("./message_types/ButtonMessage.js");
+var FeedItemCarroussel = require("./message_types/FeedItemCarroussel.js");
 var Sequelize = require('sequelize');
 
 
@@ -891,105 +892,40 @@ function sendNewsMessage(recipientId) {
   callSendAPI(messageData);
 }
 
-function broadcastNews(recipientID) {
+function broadcastNews(recipientID, subscription) {
+  var feedList = {
+    'subscribe-news': "http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-spektrum-flavoured",
+    'subscribe-fischer': "http://newsfeed.zeit.de/serie/fischer-im-recht/rss-spektrum-flavoured"
+  }
 
-  function sendBroadcast(messageObject, recipients){
+  var feedUrl = feedList[subscription] || feedList['subscribe-news'];
+
+  function sendBroadcast(recipients, data){
     for (var i = 0; i < recipients.length; i++) {
       var bulkMessageData = {
         recipient: {
           id: recipients[i].dataValues.pcuid
         },
         
-        message: messageObject
+        message: data
       };
-
       callSendAPI(bulkMessageData);
     }
   }
 
-  function getWichtigeNachrichten(recipients){
-    request.get("http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-spektrum-flavoured", function(err, data){      
-      if(err){console.log(err)}
-      parseString(data.body, function (err, result) {
-        var newsItem = result.rss.channel[0].item[0];
-        var newsItem2 = result.rss.channel[0].item[1];
-        var newsItem3 = result.rss.channel[0].item[2];
-        
-        var messageObject = {
-              attachment: {
-                type: "template",
-                payload: {
-                  template_type: "generic",
-                  elements: [{
-                    title: newsItem.title[0],
-                    subtitle: newsItem.description[0],
-                    item_url: newsItem.link[0],
-                    image_url: newsItem.enclosure[0].$.url,             
-                    buttons: [{
-                      type: "web_url",
-                      url: newsItem.link[0],
-                      title: "Zum Artikel"
-                    }, {
-                      type: "postback",
-                      title: "Abonnieren",
-                      payload: "subscribe-news",
-                    }],
-                  },
-                  {
-                    title: newsItem2.title[0],
-                    subtitle: newsItem2.description[0],
-                    item_url: newsItem2.link[0],
-                    image_url: newsItem2.enclosure[0].$.url,               
-                    buttons: [{
-                      type: "web_url",
-                      url: newsItem2.link[0],
-                      title: "Zum Artikel"
-                    }, {
-                      type: "postback",
-                      title: "Abonnieren",
-                      payload: "subscribe-news",
-                    }],
-                  },
-                  {
-                    title: newsItem3.title[0],
-                    subtitle: newsItem3.description[0],
-                    item_url: newsItem3.link[0],
-                    image_url: newsItem3.enclosure[0].$.url,             
-                    buttons: [{
-                      type: "web_url",
-                      url: newsItem3.link[0],
-                      title: "Zum Artikel"
-                    }, {
-                      type: "postback",
-                      title: "Abonnieren",
-                      payload: "subscribe-news",
-                    }],
-                  }]
-                }
-              }
-            } //End of Message Object
-            sendBroadcast(messageObject, recipients);          
-      });
-    }) //End of getWichtigeNachrichten
-  }
 
-
-  getRecipients("subscribe-news", function(recipients){
-    getWichtigeNachrichten(recipients);
-    var messageData = {
-      recipient: {
-        id: recipientID
-      },
-      message: {
-        text: "Wichtige Nachrichten wurden an " + recipients.length + " Nutzer geschickt."
-      }
-    };
-
-    if(recipientID){
-      callSendAPI(messageData);
-    }      
-  });
+  new FeedItemCarroussel(feedUrl, request, parseString, function(data){
+    getRecipients(subscription, function(recipients){
+      sendBroadcast(recipients, data);
+      var successMessage = "Wichtige Nachrichten wurden an " + recipients.length + " Nutzer geschickt.";
+      if(recipientID){
+        sendTextMessage(recipientID, successMessage);
+      }      
+    });
+  })
 }
+
+//broadcastNews("my-user-pcuid", "my-shiny-subscription");
 
 function getRSS(){
   request.get("http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-spektrum-flavoured", function(err, data){
@@ -998,6 +934,7 @@ function getRSS(){
     parseString(data.body, function (err, result) {
       var newsItem = result.rss.channel[0].item[0];
 
+      var imgPath = newsItem.enclosure[0].$.url.replace("original__180x120", "wide__506×262__desktop");
         var bulkMessageData = {
           recipient: {
             id: "recipients"
@@ -1006,7 +943,7 @@ function getRSS(){
             title: newsItem.title[0],
             text: newsItem.description[0],
             item_url: newsItem.link[0],
-            image_url: newsItem.enclosure[0].$.url
+            image_url: imgPath
           }
         };
 
@@ -1014,7 +951,6 @@ function getRSS(){
     });
   })
 }
-
 
 /*
  * Call the Send API. The message data goes in the body. If successful, we'll 
