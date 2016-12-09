@@ -21,26 +21,8 @@ User.hasMany(Subscription);
 
 sequelize.sync()
   .then(function(){
-    creatAUser();
+    console.log('connected to database');
   })
-
-function creatAUser(){
-  var myUser = User
-    .create({ pcuid: '2345678', intent: 'topic' })
-    .then(function(user) {
-      addASubscription(user)
-    })
-}
-
-
-function addASubscription(user){
-  var hisSubscription = Subscription
-    .create({ name: "testSubscription", active: false, interval: "daily"})
-    .then(function(subscription){
-      subscription.setUser(user);
-      console.log(subscription);
-    })
-}
 
 
 var app = express();
@@ -401,44 +383,42 @@ function receivedPostback(event) {
 
 }
 
+
+function addASubscription(user){
+  var hisSubscription = Subscription
+    .create({ name: "testSubscription", active: false, interval: "daily"})
+    .then(function(subscription){
+      subscription.setUser(user);
+      console.log(subscription);
+    })
+}
+
+
 function saveSubscriber(subscription, user) {
   var answer = "Sie haben " + subscription + " abonniert.";
-  pg.connect(process.env.DATABASE_URL, function(err, client) {
-    if (err) throw err;
-
-    client
-      .query('INSERT INTO subscribers (pcuid, subscription) VALUES ($1, $2) ON CONFLICT (pcuid) DO NOTHING', [user, subscription], function(err, res){
-        if (err) throw err;
-        if(res){
-          
-          sendTextMessage(user, answer);
-        }
-        client.end(function (err) {
-          if (err) throw err;
-        });
-      })
-  });
+  var myUser = User
+    .findOrCreate({
+    where: {pcuid: user}
+  }).then(function(u){
+    addASubscription(u[0].dataValues.id);
+    sendTextMessage(user, answer);
+  })
 }
 
 
 function getRecipients(subscription, callback) {
-  pg.connect(process.env.DATABASE_URL, function(err, client) {
-    if (err) throw err;
-    var subscribers = [];
-    client
-      .query('SELECT pcuid FROM subscribers WHERE subscription IN ($1)', [subscription], function(err, res){
-        if (err) throw err;
-        if(res){
-          client.end(function (err) {
-            if (err) throw err;
-          });
-          callback(subscribers);
-        }
-      })
-      .on('row', function(row) {
-        subscribers.push(row);
-      });
-  });
+  Subscription
+    .findAll({
+      attributes: ['userId'],
+      where: {
+        name: subscription,
+        active: false,
+        userId: {$not: null}
+      }
+    })
+    .then(function(subscr){
+      callback(subscr);
+    })
 }
 
 /*

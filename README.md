@@ -15,3 +15,6 @@ ToDo
 * it knows when there is a new article someone is subscribed to
 * it forwards the article snippet to the user
 * it can send the user three recent "Wichtige Nachrichten" as a carousel
+
+
+
