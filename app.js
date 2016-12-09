@@ -384,25 +384,32 @@ function receivedPostback(event) {
 }
 
 
-function addASubscription(user){
-  var hisSubscription = Subscription
-    .create({ name: "testSubscription", active: true, interval: "daily"})
-    .then(function(subscription){
-      subscription.setUser(user);
-      console.log(subscription);
+function addASubscription(user, subscription){
+  var answer = "Ihr Abo wurde gespeichert.";
+  Subscription
+    .upsert({ 
+      name: subscription,
+      active: true,
+      interval: "daily"
+    },{
+      where: {
+        name: subscription,
+        userId: user
+      }
+    })
+    .then(function(subscr){
+      sendTextMessage(user, answer);
     })
 }
 
 
 function saveSubscriber(subscription, user) {
-  var answer = "Sie haben " + subscription + " abonniert.";
-  var myUser = User
+  User
     .findOrCreate({
-    where: {pcuid: user}
-  }).then(function(u){
-    addASubscription(u[0].dataValues.id);
-    sendTextMessage(user, answer);
-  })
+      where: {pcuid: user}
+    }).then(function(u){
+      addASubscription(u[0].dataValues.id, subscription);
+    })
 }
 
 
