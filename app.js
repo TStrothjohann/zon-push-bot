@@ -309,7 +309,7 @@ function receivedMessage(event) {
         break;
 
       case 'broadcast':
-        broadcastNews(senderID);
+        broadcastNews(senderID, 'subscribe-news');
         break;
 
       default:
@@ -901,6 +901,7 @@ function broadcastNews(recipientID, subscription) {
   var feedUrl = feedList[subscription] || feedList['subscribe-news'];
 
   function sendBroadcast(recipients, data){
+    console.log(recipients);
     for (var i = 0; i < recipients.length; i++) {
       var bulkMessageData = {
         recipient: {
