@@ -424,7 +424,20 @@ function getRecipients(subscription, callback) {
       }
     })
     .then(function(subscr){
-      callback(subscr);
+      var recipientIDs = [];
+      for (var i = 0; i < subscr.length; i++) {
+        recipientIDs.push(subscr[i].userId.toString());
+      }
+      
+      User.findAll({
+        where: {
+          id: {
+            $in: recipientIDs
+          }
+        }
+      }).then(function(recipients){
+        callback(recipients);
+      })
     })
 }
 
@@ -884,7 +897,7 @@ function broadcastNews(recipientID) {
     for (var i = 0; i < recipients.length; i++) {
       var bulkMessageData = {
         recipient: {
-          id: recipients[i].pcuid
+          id: recipients[i].dataValues.pcuid
         },
         
         message: messageObject
