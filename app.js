@@ -134,7 +134,7 @@ app.get('/authorize', function(req, res) {
 
 app.post('/new-item', function(req, res){
   if(req.param('ping')){
-    broadcastNews(false);        
+    broadcastNews(false, 'subscribe-news');        
   }
   res.sendStatus(200);
 });
