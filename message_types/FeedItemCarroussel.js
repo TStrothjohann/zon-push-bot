@@ -7,9 +7,9 @@ function FeedItemCarroussel(feedurl, request, parseString, callback) {
       var feedItem = result.rss.channel[0].item[0];
       var feedItem2 = result.rss.channel[0].item[1];
       var feedItem3 = result.rss.channel[0].item[2];
-      var imgPath = feedItem.enclosure[0].$.url.replace("original__180x120", "wide__506×262__desktop");
-      var imgPath2 = feedItem2.enclosure[0].$.url.replace("original__180x120", "wide__506×262__desktop");
-      var imgPath3 = feedItem3.enclosure[0].$.url.replace("original__180x120", "wide__506×262__desktop");
+      var imgPath = feedItem.enclosure[0].$.url.replace("original__180x120", "wide__506x262__desktop");
+      var imgPath2 = feedItem2.enclosure[0].$.url.replace("original__180x120", "wide__506x262__desktop");
+      var imgPath3 = feedItem3.enclosure[0].$.url.replace("original__180x120", "wide__506x262__desktop");
 
       var messageObject = {
             attachment: {
