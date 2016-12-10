@@ -375,6 +375,9 @@ function receivedPostback(event) {
     case "get-started":
       sendNewsMessage(senderID);
       break;
+    case "subscribe-news-off":
+      stopSubscription(senderID, "subscribe-news");
+      break;
   }  
 
 
@@ -442,6 +445,24 @@ function getRecipients(subscription, callback) {
     })
 }
 
+function stopSubscription(user, subscription){
+  User.findOne({ where: { pcuid: user } })
+    .then(function(subscriber){
+      Subscription.findAll({ 
+        where: {
+          userId: subscriber.dataValues.id,
+          name: subscription
+        } 
+      }).then(function(subscr){
+        for (var i = 0; i < subscr.length; i++) {
+          subscr[i].setDataValue('active', false);
+          subscr[i].save().then(function(s){
+            console.log(s)
+          })
+        }
+      })
+    })
+}
 /*
  * Message Read Event
  *

@@ -7,7 +7,10 @@ function FeedItemCarroussel(feedurl, request, parseString, callback) {
       var feedItem = result.rss.channel[0].item[0];
       var feedItem2 = result.rss.channel[0].item[1];
       var feedItem3 = result.rss.channel[0].item[2];
-      
+      var imgPath = feedItem.enclosure[0].$.url.replace("original__180x120", "wide__506×262__desktop");
+      var imgPath2 = feedItem2.enclosure[0].$.url.replace("original__180x120", "wide__506×262__desktop");
+      var imgPath3 = feedItem3.enclosure[0].$.url.replace("original__180x120", "wide__506×262__desktop");
+
       var messageObject = {
             attachment: {
               type: "template",
@@ -17,7 +20,7 @@ function FeedItemCarroussel(feedurl, request, parseString, callback) {
                   title: feedItem.title[0],
                   subtitle: feedItem.description[0],
                   item_url: feedItem.link[0],
-                  image_url: feedItem.enclosure[0].$.url.replace("original__180x120", "wide__506×262__desktop"),             
+                  image_url: imgPath,             
                   buttons: [{
                     type: "web_url",
                     url: feedItem.link[0],
@@ -32,7 +35,7 @@ function FeedItemCarroussel(feedurl, request, parseString, callback) {
                   title: feedItem2.title[0],
                   subtitle: feedItem2.description[0],
                   item_url: feedItem2.link[0],
-                  image_url: feedItem2.enclosure[0].$.url.replace("original__180x120", "wide__506×262__desktop"),               
+                  image_url: imgPath2,               
                   buttons: [{
                     type: "web_url",
                     url: feedItem2.link[0],
@@ -47,7 +50,7 @@ function FeedItemCarroussel(feedurl, request, parseString, callback) {
                   title: feedItem3.title[0],
                   subtitle: feedItem3.description[0],
                   item_url: feedItem3.link[0],
-                  image_url: feedItem3.enclosure[0].$.url.replace("original__180x120", "wide__506×262__desktop"),             
+                  image_url: imgPath3,             
                   buttons: [{
                     type: "web_url",
                     url: feedItem3.link[0],
