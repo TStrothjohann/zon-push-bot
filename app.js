@@ -11,6 +11,8 @@ const
 
 var ButtonMessage = require("./message_types/ButtonMessage.js");
 var FeedItemCarroussel = require("./message_types/FeedItemCarroussel.js");
+var HelpMessage = require("./message_types/HelpMessage.js");
+var NewsMessage = require("./message_types/NewsMessage.js");
 var Sequelize = require('sequelize');
 var sequelize = new Sequelize(process.env.DATABASE_URL);
 var User = sequelize.import(__dirname + "/models/User.js");
@@ -22,6 +24,10 @@ var Subscription = sequelize.import(__dirname + "/models/Subscription.js");
       console.log('connected to database');
     })
 
+var feedList = {
+  'subscribe-news': "http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-spektrum-flavoured",
+  'subscribe-fischer': "http://newsfeed.zeit.de/serie/fischer-im-recht/rss-spektrum-flavoured"
+}
 
 var app = express();
 app.set('port', process.env.PORT || 5000);
@@ -237,10 +243,20 @@ function receivedMessage(event) {
     return;
   } else if (quickReply) {
     var quickReplyPayload = quickReply.payload;
-    console.log("Quick reply for message %s with payload %s",
-      messageId, quickReplyPayload);
+      switch (quickReplyPayload) {
+        case 'fresh-fischer':
 
-    sendTextMessage(senderID, "Quick reply tapped");
+          break;
+
+        case 'fresh-news':
+          
+          break;
+
+        default:
+          sendTextMessage(senderID, "Tapped handled quick reply");        
+      }
+
+    
     return;
   }
 
@@ -303,7 +319,8 @@ function receivedMessage(event) {
         break;
 
       case 'news':
-        sendNewsMessage(senderID);
+        sendNewsMessage(senderID, "subscribe-news", 2);
+        sendNewsMessage(senderID, "subscribe-fischer", 1);
         break;
 
       case 'broadcast':
@@ -372,13 +389,16 @@ function receivedPostback(event) {
       break;
 
     case "get-started":
-      sendNewsMessage(senderID);
+      sendQuickHelp(senderID);
       break;
     case "subscribe-news-off":
       stopSubscription(senderID, "subscribe-news");
       break;
     case "subscribe-fischer-off":
-      stopSubscription(senderID, "fischer-news");
+      stopSubscription(senderID, "subscribe-fischer");
+      break;
+    case "help_postback":
+      sendQuickHelp(senderID);
       break;
   }  
 
@@ -791,6 +811,23 @@ function sendQuickReply(recipientId) {
   callSendAPI(messageData);
 }
 
+
+function sendQuickHelp(recipientId) {
+  
+  new HelpMessage(function(data){
+    var messageData = {
+      recipient: {
+        id: recipientId
+      },
+      message: data
+    }
+
+    callSendAPI(messageData);  
+  })
+};
+
+sendQuickHelp("966046353514879");
+
 /*
  * Send a read receipt to indicate the message has been read
  *
@@ -869,57 +906,24 @@ function sendAccountLinking(recipientId) {
   callSendAPI(messageData);
 }
 
-function sendNewsMessage(recipientId) {
-  var messageData = {
-   recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "template",
-        payload: {
-          template_type: "generic",
-          elements: [{
-            title: "Serie: Fischer im Recht",
-            subtitle: "Thomas Fischer ist Bundesrichter in Karlsruhe und schreibt für ZEIT und ZEIT ONLINE über Rechtsfragen.",
-            item_url: "http://www.zeit.de/serie/fischer-im-recht",               
-            image_url: "http://img.zeit.de/autoren/F/Thomas_Fischer/thomas-fischer/wide__300x200__desktop",
-            buttons: [{
-              type: "web_url",
-              url: "http://www.zeit.de/serie/fischer-im-recht",
-              title: "Zur Serie"
-            }, {
-              type: "postback",
-              title: "Abonnieren",
-              payload: "subscribe-fischer",
-            }],
-          }, {
-            title: "Redaktionsempfehlungen",
-            subtitle: "Besonders wichtige Nachrichten und Texte von ZEIT ONLINE",
-            item_url: "http://www.zeit.de/administratives/wichtige-nachrichten",               
-            image_url: "http://img.zeit.de/angebote/bilder-angebotsbox/2016/bild-angebotsbox-48.jpg/imagegroup/wide",
-            buttons: [{
-              type: "web_url",
-              url: "http://www.zeit.de/administratives/wichtige-nachrichten",
-              title: "Zur Übersicht"
-            }, {
-              type: "postback",
-              title: "Abonnieren",
-              payload: "subscribe-news",
-            }]
-          }]
-        }
-      }
-    }
-  };
-  callSendAPI(messageData);
+function sendNewsMessage(recipientId, subscription, items) {
+
+  new NewsMessage(feedList[subscription], items, request, parseString, function(data){
+    var messageData = {
+     recipient: {
+        id: recipientId
+      },
+      message: data
+    };
+
+    callSendAPI(messageData);
+  })
+
 }
 
+sendNewsMessage("966046353514879", "subscribe-news", 1);
+
 function broadcastNews(recipientID, subscription, items) {
-  var feedList = {
-    'subscribe-news': "http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-spektrum-flavoured",
-    'subscribe-fischer': "http://newsfeed.zeit.de/serie/fischer-im-recht/rss-spektrum-flavoured"
-  }
 
   var feedUrl = feedList[subscription] || feedList['subscribe-news'];
 
