@@ -305,6 +305,7 @@ function receivedMessage(event) {
 
       case 'broadcast':
         broadcastNews(senderID, 'subscribe-news', 3);
+        broadcastNews(senderID, 'subscribe-fischer', 1);
         break;
 
       default:
