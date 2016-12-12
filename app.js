@@ -245,11 +245,11 @@ function receivedMessage(event) {
     var quickReplyPayload = quickReply.payload;
       switch (quickReplyPayload) {
         case 'fresh-fischer':
-
+          sendNewsMessage(senderID, "subscribe-fischer", 2);
           break;
 
         case 'fresh-news':
-          
+          sendNewsMessage(senderID, "subscribe-news", 3);
           break;
 
         default:
@@ -826,8 +826,6 @@ function sendQuickHelp(recipientId) {
   })
 };
 
-sendQuickHelp("966046353514879");
-
 /*
  * Send a read receipt to indicate the message has been read
  *
@@ -920,8 +918,6 @@ function sendNewsMessage(recipientId, subscription, items) {
   })
 
 }
-
-sendNewsMessage("966046353514879", "subscribe-news", 1);
 
 function broadcastNews(recipientID, subscription, items) {
 
