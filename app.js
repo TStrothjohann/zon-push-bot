@@ -12,18 +12,15 @@ const
 var ButtonMessage = require("./message_types/ButtonMessage.js");
 var FeedItemCarroussel = require("./message_types/FeedItemCarroussel.js");
 var Sequelize = require('sequelize');
-
-
 var sequelize = new Sequelize(process.env.DATABASE_URL);
 var User = sequelize.import(__dirname + "/models/User.js");
 var Subscription = sequelize.import(__dirname + "/models/Subscription.js");
-Subscription.belongsTo(User);
-User.hasMany(Subscription);
-
-sequelize.sync()
-  .then(function(){
-    console.log('connected to database');
-  })
+  Subscription.belongsTo(User);
+  User.hasMany(Subscription);
+  sequelize.sync()
+    .then(function(){
+      console.log('connected to database');
+    })
 
 
 var app = express();
@@ -33,9 +30,7 @@ app.use(bodyParser.json({ verify: verifyRequestSignature }));
 app.use(express.static('public'));
 
 const APP_SECRET = process.env.MESSENGER_APP_SECRET;
-
 const VALIDATION_TOKEN = process.env.MESSENGER_VALIDATION_TOKEN;
-
 const PAGE_ACCESS_TOKEN = process.env.MESSENGER_PAGE_ACCESS_TOKEN;
 
 // URL where the app is running (include protocol). Used to point to scripts and 
@@ -134,7 +129,7 @@ app.get('/authorize', function(req, res) {
 
 app.post('/new-item', function(req, res){
   if(req.param('ping')){
-    broadcastNews(false, 'subscribe-news');        
+    broadcastNews(false, 'subscribe-news', 1);        
   }
   res.sendStatus(200);
 });
@@ -309,7 +304,7 @@ function receivedMessage(event) {
         break;
 
       case 'broadcast':
-        broadcastNews(senderID, 'subscribe-news');
+        broadcastNews(senderID, 'subscribe-news', 3);
         break;
 
       default:
@@ -913,7 +908,7 @@ function sendNewsMessage(recipientId) {
   callSendAPI(messageData);
 }
 
-function broadcastNews(recipientID, subscription) {
+function broadcastNews(recipientID, subscription, items) {
   var feedList = {
     'subscribe-news': "http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-spektrum-flavoured",
     'subscribe-fischer': "http://newsfeed.zeit.de/serie/fischer-im-recht/rss-spektrum-flavoured"
@@ -936,7 +931,7 @@ function broadcastNews(recipientID, subscription) {
   }
 
 
-  new FeedItemCarroussel(feedUrl, request, parseString, function(data){
+  new FeedItemCarroussel(feedUrl, items, request, parseString, function(data){
     getRecipients(subscription, function(recipients){
       sendBroadcast(recipients, data);
       var successMessage = "Wichtige Nachrichten wurden an " + recipients.length + " Nutzer geschickt.";
@@ -947,7 +942,7 @@ function broadcastNews(recipientID, subscription) {
   })
 }
 
-//broadcastNews("my-user-pcuid", "my-shiny-subscription");
+// broadcastNews("my-user-pcuid", "my-shiny-subscription", 1);
 
 function getRSS(){
   request.get("http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-spektrum-flavoured", function(err, data){
