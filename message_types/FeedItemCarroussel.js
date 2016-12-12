@@ -1,4 +1,4 @@
-function FeedItemCarroussel(feedurl, items, request, parseString, callback) {
+function FeedItemCarroussel(feedurl, items, subscription, request, parseString, callback) {
   request.get(feedurl, function(err, data){      
     if(err){console.log(err)}
     parseString(data.body, function (err, result) {
@@ -24,7 +24,7 @@ function FeedItemCarroussel(feedurl, items, request, parseString, callback) {
           }, {
             type: "postback",
             title: "Abo beenden",
-            payload: "subscribe-news-off"
+            payload: subscription + "-off"
           }],
         };
 

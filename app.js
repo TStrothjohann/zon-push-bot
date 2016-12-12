@@ -377,6 +377,9 @@ function receivedPostback(event) {
     case "subscribe-news-off":
       stopSubscription(senderID, "subscribe-news");
       break;
+    case "subscribe-fischer-off":
+      stopSubscription(senderID, "fischer-news");
+      break;
   }  
 
 
@@ -456,7 +459,7 @@ function stopSubscription(user, subscription){
         for (var i = 0; i < subscr.length; i++) {
           subscr[i].setDataValue('active', false);
           subscr[i].save().then(function(s){
-            console.log(s)
+            sendTextMessage(user, "Das Abo ist deaktiviert.")
           })
         }
       })
@@ -935,7 +938,7 @@ function broadcastNews(recipientID, subscription, items) {
   }
 
 
-  new FeedItemCarroussel(feedUrl, items, request, parseString, function(data){
+  new FeedItemCarroussel(feedUrl, items, subscription, request, parseString, function(data){
     getRecipients(subscription, function(recipients){
       sendBroadcast(recipients, data);
       var successMessage = "Wichtige Nachrichten wurden an " + recipients.length + " Nutzer geschickt.";
