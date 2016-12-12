@@ -131,6 +131,9 @@ app.post('/new-item', function(req, res){
   if(req.param('ping')){
     broadcastNews(false, 'subscribe-news', 1);        
   }
+  if(req.param('fischer')){
+    broadcastNews(false, 'subscribe-fischer', 1);
+  }
   res.sendStatus(200);
 });
 
