@@ -12,6 +12,16 @@ function HelpMessage(callback) {
         "content_type":"text",
         "title":"Redaktionsempfehlungen",
         "payload":"fresh-news"
+      },
+      {
+        "content_type":"text",
+        "title":"Rezepte",
+        "payload":"subscribe-rezepte"
+      },
+      {
+        "content_type":"text",
+        "title":"ZEIT Campus",
+        "payload":"subscribe-campus"
       }
     ]
   };

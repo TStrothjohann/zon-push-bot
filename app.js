@@ -25,8 +25,10 @@ var Subscription = sequelize.import(__dirname + "/models/Subscription.js");
     })
 
 var feedList = {
-  'subscribe-news': "http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-spektrum-flavoured",
-  'subscribe-fischer': "http://newsfeed.zeit.de/serie/fischer-im-recht/rss-spektrum-flavoured"
+  'subscribe-news': 'http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-spektrum-flavoured',
+  'subscribe-fischer': 'http://newsfeed.zeit.de/serie/fischer-im-recht/rss-spektrum-flavoured',
+  'subscribe-campus': 'http://newsfeed.zeit.de/campus/index/rss-spektrum-flavoured',
+  'subscribe-receipes': 'http://newsfeed.zeit.de/thema/kochrezept/rss-spektrum-flavoured'
 }
 
 var app = express();
@@ -252,6 +254,14 @@ function receivedMessage(event) {
           sendNewsMessage(senderID, "subscribe-news", 3);
           break;
 
+        case 'fresh-rezepte':
+          sendNewsMessage(senderID, "subscribe-receipes", 3);
+          break;
+
+        case 'fresh-campus':
+          sendNewsMessage(senderID, "subscribe-campus", 3);
+          break;
+
         default:
           sendTextMessage(senderID, "Tapped handled quick reply");        
       }
@@ -321,6 +331,8 @@ function receivedMessage(event) {
       case 'news':
         sendNewsMessage(senderID, "subscribe-news", 2);
         sendNewsMessage(senderID, "subscribe-fischer", 1);
+        sendNewsMessage(senderID, "subscribe-receipes", 3);
+        sendNewsMessage(senderID, "subscribe-campus", 3);
         break;
 
       case 'broadcast':
@@ -335,7 +347,6 @@ function receivedMessage(event) {
     sendTextMessage(senderID, "Message with attachment received");
   }
 }
-
 
 /*
  * Delivery Confirmation Event
@@ -409,6 +420,7 @@ function receivedPostback(event) {
 
 }
 
+sendQuickHelp("966046353514879");
 
 function addASubscription(user, subscription){
   var answer = "Ihr Abo wurde gespeichert.";
