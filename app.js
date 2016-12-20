@@ -28,8 +28,39 @@ var feedList = {
   'subscribe-news': 'http://newsfeed.zeit.de/administratives/wichtige-nachrichten/rss-spektrum-flavoured',
   'subscribe-fischer': 'http://newsfeed.zeit.de/serie/fischer-im-recht/rss-spektrum-flavoured',
   'subscribe-campus': 'http://newsfeed.zeit.de/campus/index/rss-spektrum-flavoured',
-  'subscribe-receipes': 'http://newsfeed.zeit.de/thema/kochrezept/rss-spektrum-flavoured'
+  'subscribe-receipes': 'http://newsfeed.zeit.de/thema/kochrezept/rss-spektrum-flavoured',
+  'subscribe-gehaltsprotokoll': 'http://newsfeed.zeit.de/serie/das-anonyme-gehaltsprotokoll/rss-spektrum-flavoured',
+  'subscribe-10-nach-8': '',
+  'subscribe-gesellschaftskritik': '',
+  'subscribe-junglinks': '',
+
 }
+
+//Neues Abo: 1. in Feedlist, 2. Abomöglichkeit z.B. QuickReply in Help,
+//3. (optional) Sende-Eintrag in sendnews oder broadcast
+//4. Subscription Payload -> saveSubscriber
+//5. Abbestellen-Eintrag 
+//X. Ping in der app, ping in Zapier 
+
+//'subscribe-teilchen' WP-Blog 
+//deutschlandkarte
+// deutschlandkarte
+// jungundlinks
+// fischerimrecht
+// störungsmelder
+// fünfvoracht
+// beziehungen
+// daswarmeinerettung
+// gestrandetin
+// martenstein
+// indersprechstunde
+// betaquiz
+// globaldrugsurvey
+// kiyaksdeutschstunde
+// derneuemann
+// ichhabeeinentraum
+// sonntagsessen
+
 
 var app = express();
 app.set('port', process.env.PORT || 5000);
@@ -137,10 +168,12 @@ app.get('/authorize', function(req, res) {
 
 app.post('/new-item', function(req, res){
   if(req.param('ping')){
-    broadcastNews(false, 'subscribe-news', 1);        
+    broadcastNews(false, 'subscribe-news', 1);
+    console.log('broadcasted news');        
   }
   if(req.param('fischer')){
     broadcastNews(false, 'subscribe-fischer', 1);
+    console.log('broadcasted fischer');
   }
   res.sendStatus(200);
 });
@@ -419,8 +452,6 @@ function receivedPostback(event) {
     "at %d", senderID, recipientID, payload, timeOfPostback);
 
 }
-
-sendQuickHelp("966046353514879");
 
 function addASubscription(user, subscription){
   var answer = "Ihr Abo wurde gespeichert.";
@@ -953,7 +984,7 @@ function broadcastNews(recipientID, subscription, items) {
   new FeedItemCarroussel(feedUrl, items, subscription, request, parseString, function(data){
     getRecipients(subscription, function(recipients){
       sendBroadcast(recipients, data);
-      var successMessage = "Wichtige Nachrichten wurden an " + recipients.length + " Nutzer geschickt.";
+      var successMessage = "Broadcast verschickt.";
       if(recipientID){
         sendTextMessage(recipientID, successMessage);
       }      

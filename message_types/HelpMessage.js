@@ -1,7 +1,11 @@
 function HelpMessage(callback) {
   
   var message = {
-    text: "Ich kann Ihnen zurzeit Redaktionsempfehlungen und die Serie Fischer im Recht anbieten...",
+    text: "Ich kann Ihnen zurzeit Redaktionsempfehlungen," +
+    " neue Artikel aus ZEIT Campus Online, die Serie Fischer im Recht" + 
+    "und Rezepte aus dem ZEIT Magazin anbieten. Diese Auswahl können Sie über den Punkt " +
+    "Hilfe in Menü jederzeit aufrufen. Wenn Sie bei einem Artikel auf 'Abonnieren' klicken, " +
+    "schicke ich Ihnen eine Messenger-Nachricht, sobald ein neuer Artikel der Serie online geht.",
     quick_replies: [
       {
         "content_type":"text",

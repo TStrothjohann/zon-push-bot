@@ -15,5 +15,5 @@ ToDo
 * it can offer users to subscribe to a series
 * it can offer users to subscribe to a topic
 * it can read posts to users
-* Basic tracking
-* 
+* Basic tracking 
+* Listing subscribers
