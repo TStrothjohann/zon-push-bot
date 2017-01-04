@@ -962,8 +962,6 @@ function sendNewsMessage(recipientId, subscription, items) {
 
 }
 
-sendNewsMessage('966046353514879', 'subscribe-fischer', 2);
-
 function broadcastNews(recipientID, subscription, items) {
 
   var feedUrl = feedList[subscription] || feedList['subscribe-news'];
