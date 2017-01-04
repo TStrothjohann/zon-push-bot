@@ -949,7 +949,7 @@ function sendAccountLinking(recipientId) {
 
 function sendNewsMessage(recipientId, subscription, items) {
 
-  new NewsMessage(feedList[subscription], items, request, parseString, function(data){
+  new NewsMessage(subscription, feedList[subscription], items, request, parseString, function(data){
     var messageData = {
      recipient: {
         id: recipientId
@@ -961,6 +961,8 @@ function sendNewsMessage(recipientId, subscription, items) {
   })
 
 }
+
+sendNewsMessage('966046353514879', 'subscribe-fischer', 2);
 
 function broadcastNews(recipientID, subscription, items) {
 

@@ -1,4 +1,4 @@
-function NewsMessage(feedurl, items, request, parseString, callback) {
+function NewsMessage(subscription, feedurl, items, request, parseString, callback) {
   request.get(feedurl, function(err, data){      
     if(err){console.log(err)}
     parseString(data.body, function (err, result) {
@@ -24,7 +24,7 @@ function NewsMessage(feedurl, items, request, parseString, callback) {
           }, {
             type: "postback",
             title: "Abonnieren",
-            payload: "subscribe-fischer",
+            payload: subscription,
           }],
         };
 
