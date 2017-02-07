@@ -1,5 +1,5 @@
 'use strict';
-
+// ?wt_zmc=sm.int.zonaudev.facebook.ref.zeitde.me_bot.link.x&utm_medium=sm&utm_source=facebook_zonaudev_int&utm_campaign=ref&utm_content=zeitde_me_bot_link_x
 const 
   bodyParser = require('body-parser'),
   crypto = require('crypto'),
@@ -175,6 +175,18 @@ app.post('/new-item', function(req, res){
     broadcastNews(false, 'subscribe-fischer', 1);
     console.log('broadcasted fischer');
   }
+  if(req.param('campus')){
+    broadcastNews(false, 'subscribe-campus', 1);
+    console.log('broadcasted campus');
+  }
+  if(req.param('rezepte')){
+    broadcastNews(false, 'subscribe-receipes', 1);
+    console.log('broadcasted receipes');
+  }
+  if(req.param('gehaltsprotokolle')){
+    broadcastNews(false, 'subscribe-gehaltsprotokoll', 1);
+    console.log('broadcasted gehaltsprotokolle');
+  }
   res.sendStatus(200);
 });
 
@@ -304,7 +316,7 @@ function receivedMessage(event) {
   }
 
   if (messageText) {
-
+    messageText = messageText.toLowerCase();
     // If we receive a text message, check to see if it matches any special
     // keywords and send back the corresponding example. Otherwise, just echo
     // the text we received.
@@ -362,10 +374,27 @@ function receivedMessage(event) {
         break;
 
       case 'news':
-        sendNewsMessage(senderID, "subscribe-news", 2);
-        sendNewsMessage(senderID, "subscribe-fischer", 1);
+        sendNewsMessage(senderID, "subscribe-news", 3);
+        break;
+
+      case 'fischer':
+        sendNewsMessage(senderID, "subscribe-fischer", 3);
+        break;
+
+      case 'rezepte'
         sendNewsMessage(senderID, "subscribe-receipes", 3);
+        break;
+
+      case 'campus'
         sendNewsMessage(senderID, "subscribe-campus", 3);
+        break;
+
+      case 'gehaltsprotokoll'
+        sendNewsMessage(senderID, "subscribe-gehaltsprotokoll", 3);
+        break;
+
+      case 'hilfe'
+        sendQuickHelp(senderID);
         break;
 
       case 'broadcast':
@@ -432,18 +461,47 @@ function receivedPostback(event) {
       saveSubscriber(payload, senderID);
       break;
 
-    case "get-started":
-      sendQuickHelp(senderID);
+    case "subscribe-campus":
+      saveSubscriber(payload, senderID);
       break;
+
+    case "subscribe-gehaltsprotokoll":
+      saveSubscriber(payload, senderID);
+      break;
+
+    case "subscribe-receipes":
+      saveSubscriber(payload, senderID);
+      break;
+
     case "subscribe-news-off":
       stopSubscription(senderID, "subscribe-news");
       break;
+    
     case "subscribe-fischer-off":
       stopSubscription(senderID, "subscribe-fischer");
       break;
+
+    case "subscribe-campus-off":
+      stopSubscription(senderID, "subscribe-campus");
+      break;
+
+    case "subscribe-gehaltsprotokoll-off":
+      stopSubscription(senderID, "subscribe-gehaltsprotokoll");
+      break;
+
+    case "subscribe-receipes-off":
+      stopSubscription(senderID, "subscribe-receipes");
+      break;
+
+    case "get-started":
+      sendQuickHelp(senderID);
+      break;
+
     case "help_postback":
       sendQuickHelp(senderID);
       break;
+
+
   }  
 
 
